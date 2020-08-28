@@ -1,0 +1,565 @@
+## Package telepítés
+install.packages("lubridate")
+install.packages("quantmod")
+install.packages("forecast")
+install.packages("ggplot2")
+install.packages("reshape2")
+install.packages("readr")
+install.packages("scales")
+install.packages("dplyr")
+install.packages("Hmisc")
+install.packages("corrplot")
+install.packages("PerformanceAnalytics")
+install.packages("urca")
+install.packages("tseries")
+install.packages("tidyverse")
+install.packages("rio")
+install.packages("timeSeries")
+install.packages("randtests")
+install.packages("lmtest")
+install.packages("MASS")
+install.packages("aTSA")
+install.packages("trend")
+install.packages("pracma")
+install.packages("zoom")
+install.packages("gridExtra")
+install.packages("strucchange")
+## Package beolvasás
+library(lubridate)
+library(forecast)
+library(quantmod)
+library(ggplot2)
+library(reshape2)
+library(readr)
+library(scales)
+library(dplyr)
+library(Hmisc)
+library(corrplot)
+library(PerformanceAnalytics)
+library(urca)
+library(tseries)
+library(tidyverse)
+library(rio)
+library(timeSeries)
+library(randtests)
+library(lmtest)
+library(MASS)
+library(trend)
+library(pracma)
+library(zoom)
+library(gridExtra)
+library(strucchange)
+library(aTSA)
+
+## Adatbeolvasás ##
+setwd("E:/szakdolgozat")
+arfolyamok <- read.csv("arfolyamok.csv", header=TRUE, sep=";", stringsAsFactors=FALSE)
+arfolyamok$Date <- as.Date(arfolyamok$Date, "%Y.%m.%d")
+##Árfolyamok + Január hónap
+arfolyamokjan <- read.csv("arfolyamokjan.csv", header=TRUE, sep=";", stringsAsFactors=FALSE)
+arfolyamokjan$Date <- as.Date(arfolyamokjan$Date, "%Y.%m.%d")
+misc <- read.csv("misc.csv", header=TRUE, sep=";", stringsAsFactors=FALSE)
+miscmac <- read.csv("miscmac.csv", header=TRUE, sep=";", stringsAsFactors=FALSE)
+miscmac$Date <- as.Date(miscmac$Date, "%Y.%m.%d")
+rownames(arfolyamok) <- arfolyamok$Date
+eurhuf.xts <- xts(arfolyamok$EURHUF, order.by=arfolyamok$Date)
+eurpln.xts <- xts(arfolyamok$EURPLN, order.by=arfolyamok$Date)
+eurczk.xts <- xts(arfolyamok$EURCZK, order.by=arfolyamok$Date)
+eurron.xts <- xts(arfolyamok$EURRON, order.by=arfolyamok$Date)
+eurchf.xts <- xts(arfolyamok$EURCHF, order.by=arfolyamok$Date)
+eurusd.xts <- xts(arfolyamok$EURUSD, order.by=arfolyamok$Date)
+chfhuf.xts <- xts(arfolyamok$CHFHUF, order.by=arfolyamok$Date)
+
+## Loghozamok
+eurhuflog <- data.frame(arfolyamok$Date, periodReturn(eurhuf.xts,period="daily", type="log"))
+colnames(eurhuflog)=c("Idő", "EURHUF")
+eurplnlog <- data.frame(arfolyamok$Date, periodReturn(eurpln.xts,period="daily", type="log"))
+colnames(eurplnlog)=c("Idő", "EURPLN")
+eurczklog <- data.frame(arfolyamok$Date, periodReturn(eurczk.xts,period="daily", type="log"))
+colnames(eurczklog)=c("Idő", "EURCZK")
+eurronlog <- data.frame(arfolyamok$Date, periodReturn(eurron.xts,period="daily", type="log"))
+colnames(eurronlog)=c("Idő", "EURRON")
+eurchflog <- data.frame(arfolyamok$Date, periodReturn(eurchf.xts,period="daily", type="log"))
+colnames(eurchflog)=c("Idő", "EURCHF")
+
+## Átlagos adatszám évente
+years1 <- format(arfolyamok$Date, "%Y")
+tab1 <- table(years1)
+tab1
+mean(tab1[1:(length(tab1) - 1)])
+
+## Korrelációs mátrix
+cortable <- data.frame(eurhuflog$EURHUF,eurplnlog$EURPLN,eurczklog$EURCZK,eurronlog$EURRON,eurchflog$EURCHF)
+colnames(cortable)=c("EUR/HUF", "EUR/PLN", "EUR/CZK", "EUR/RON", "EUR/CHF")
+corrates <- cor(cortable)
+round(corrates, 2)
+corrates2 <- rcorr(as.matrix(cortable))
+
+## Évesített volatilitás
+voleurhufnap <- sd(eurhuflog$EURHUF)
+voleurhufnap
+voleurhufev <- voleurhufnap * sqrt(250)
+voleurhufev
+voleurplnnap <- sd(eurplnlog$EURPLN)
+voleurplnnap
+voleurplnev <- voleurplnnap * sqrt(250)
+voleurplnev
+voleurczknap <- sd(eurczklog$EURCZK)
+voleurczknap
+voleurczkev <- voleurczknap * sqrt(250)
+voleurczkev
+voleurronnap <- sd(eurronlog$EURRON)
+voleurronnap
+voleurronev <- voleurronnap * sqrt(250)
+voleurronev
+voleurchfnap <- sd(eurchflog$EURCHF)
+voleurchfnap
+voleurchfev <- voleurchfnap * sqrt(250)
+voleurchfev
+
+## Adatálakaítás 2013-tól
+eurhufadf.xts <- eurhuf.xts["2013/2019"]
+eurplnadf.xts <- eurpln.xts["2013/2019"]
+eurczkadf.xts <- eurczk.xts["2013/2019"]
+eurronadf.xts <- eurron.xts["2013/2019"]
+eurchfadf.xts <- eurchf.xts["2013/2019"]
+
+## Logaritmizálás 2013-2020
+lnprice=log(arfolyamokjan$EURHUF[3393:5218])
+lnprice1=log(arfolyamokjan$EURPLN[3393:5218])
+lnprice2=log(arfolyamokjan$EURCZK[3393:5218])
+lnprice3=log(arfolyamokjan$EURRON[3393:5218])
+lnprice4=log(arfolyamokjan$EURCHF[3393:5218])
+
+## Differenciaképzés
+difflnprice=diff(lnprice,1)
+difflnprice1=diff(lnprice1,1)
+difflnprice2=diff(lnprice2,1)
+difflnprice3=diff(lnprice3,1)
+difflnprice4=diff(lnprice4,1)
+
+## Tesztelés ##
+#Jarque-Bera Teszt
+jarque.bera.test(as.ts(eurhuflog$EURHUF))
+jarque.bera.test(as.ts(eurplnlog$EURPLN))
+jarque.bera.test(as.ts(eurczklog$EURCZK))
+jarque.bera.test(as.ts(eurronlog$EURRON))
+jarque.bera.test(as.ts(eurchflog$EURCHF))
+##Bartels
+bartels.test(as.numeric(eurhuflog$EURHUF))
+bartels.test(as.numeric(eurplnlog$EURPLN))
+bartels.test(as.numeric(eurczklog$EURCZK))
+bartels.test(as.numeric(eurronlog$EURRON))
+bartels.test(as.numeric(eurchflog$EURCHF))
+##Cox Stuart
+cox.stuart.test(as.numeric(eurhuflog$EURHUF))
+cox.stuart.test(as.numeric(eurplnlog$EURPLN))
+cox.stuart.test(as.numeric(eurczklog$EURCZK))
+cox.stuart.test(as.numeric(eurronlog$EURRON))
+cox.stuart.test(as.numeric(eurchflog$EURCHF))
+##Wald and Wolfowitz
+runs.test(as.numeric(eurhuflog$EURHUF))
+runs.test(as.numeric(eurplnlog$EURPLN))
+runs.test(as.numeric(eurczklog$EURCZK))
+runs.test(as.numeric(eurronlog$EURRON))
+runs.test(as.numeric(eurchflog$EURCHF))
+##Fordulópont
+turning.point.test(as.numeric(eurhuflog$EURHUF))
+turning.point.test(as.numeric(eurplnlog$EURPLN))
+turning.point.test(as.numeric(eurczklog$EURCZK))
+turning.point.test(as.numeric(eurronlog$EURRON))
+turning.point.test(as.numeric(eurchflog$EURCHF))
+##Négyzet tesztek
+bartels.test(as.numeric(eurhuflog$EURHUF)^2)
+bartels.test(as.numeric(eurplnlog$EURPLN)^2)
+bartels.test(as.numeric(eurczklog$EURCZK)^2)
+bartels.test(as.numeric(eurronlog$EURRON)^2)
+bartels.test(as.numeric(eurchflog$EURCHF)^2)
+cox.stuart.test(as.numeric(eurhuflog$EURHUF)^2)
+cox.stuart.test(as.numeric(eurplnlog$EURPLN)^2)
+cox.stuart.test(as.numeric(eurczklog$EURCZK)^2)
+cox.stuart.test(as.numeric(eurronlog$EURRON)^2)
+cox.stuart.test(as.numeric(eurchflog$EURCHF)^2)
+runs.test(as.numeric(eurhuflog$EURHUF)^2)
+runs.test(as.numeric(eurplnlog$EURPLN)^2)
+runs.test(as.numeric(eurczklog$EURCZK)^2)
+runs.test(as.numeric(eurronlog$EURRON)^2)
+runs.test(as.numeric(eurchflog$EURCHF)^2)
+turning.point.test(as.numeric(eurhuflog$EURHUF)^2)
+turning.point.test(as.numeric(eurplnlog$EURPLN)^2)
+turning.point.test(as.numeric(eurczklog$EURCZK)^2)
+turning.point.test(as.numeric(eurronlog$EURRON)^2)
+turning.point.test(as.numeric(eurchflog$EURCHF)^2)
+
+##2013-2020 ADF teszt nyers
+adf.test(as.ts(eurhufadf.xts))
+adf.test(as.ts(eurplnadf.xts))
+adf.test(as.ts(eurczkadf.xts))
+adf.test(as.ts(eurronadf.xts))
+adf.test(as.ts(eurchfadf.xts))
+##KPSS teszt nyers
+kpss.test(as.numeric(eurhufadf.xts), null=c("Level"))
+kpss.test(as.numeric(eurhufadf.xts), null=c("Trend"))
+kpss.test(as.numeric(eurplnadf.xts), null=c("Level"))
+kpss.test(as.numeric(eurplnadf.xts), null=c("Trend"))
+kpss.test(as.numeric(eurczkadf.xts), null=c("Level"))
+kpss.test(as.numeric(eurczkadf.xts), null=c("Trend"))
+kpss.test(as.numeric(eurronadf.xts), null=c("Level"))
+kpss.test(as.numeric(eurronadf.xts), null=c("Trend"))
+kpss.test(as.numeric(eurchfadf.xts), null=c("Level"))
+kpss.test(as.numeric(eurchfadf.xts), null=c("Trend"))
+##KPSS teszt LOG 2013-2020
+kpss.test(lnprice, null=c("Level"))
+kpss.test(lnprice, null=c("Trend"))
+kpss.test(lnprice1, null=c("Level"))
+kpss.test(lnprice1, null=c("Trend"))
+kpss.test(lnprice2, null=c("Level"))
+kpss.test(lnprice2, null=c("Trend"))
+kpss.test(lnprice3, null=c("Level"))
+kpss.test(lnprice3, null=c("Trend"))
+kpss.test(lnprice4, null=c("Level"))
+kpss.test(lnprice4, null=c("Trend"))
+##KPSS teszt DIFF 2013-2020
+kpss.test(difflnprice, null=c("Level"))
+kpss.test(difflnprice, null=c("Trend"))
+kpss.test(difflnprice1, null=c("Level"))
+kpss.test(difflnprice1, null=c("Trend"))
+kpss.test(difflnprice2, null=c("Level"))
+kpss.test(difflnprice2, null=c("Trend"))
+kpss.test(difflnprice3, null=c("Level"))
+kpss.test(difflnprice3, null=c("Trend"))
+kpss.test(difflnprice4, null=c("Level"))
+kpss.test(difflnprice4, null=c("Trend"))
+##ADF LOG 2013-2020
+adf.test(as.ts(lnprice))
+adf.test(as.ts(lnprice1))
+adf.test(as.ts(lnprice2))
+adf.test(as.ts(lnprice3))
+adf.test(as.ts(lnprice4))
+##ADF DIFF 2013-2020
+adf.test(as.ts(difflnprice))
+adf.test(as.ts(difflnprice1))
+adf.test(as.ts(difflnprice2))
+adf.test(as.ts(difflnprice3))
+adf.test(as.ts(difflnprice4))
+
+## ARIMA ##
+pricearima <- ts(lnprice, start= c(2013,01), frequency = 260)
+pricearima1 <- ts(lnprice1, start= c(2013,01), frequency = 260)
+pricearima2 <- ts(lnprice2, start= c(2013,01), frequency = 260)
+pricearima3 <- ts(lnprice3, start= c(2013,01), frequency = 260)
+pricearima4 <- ts(lnprice4, start= c(2013,01), frequency = 260)
+fitlnprice <- auto.arima(pricearima, ic="aic", trace=T)
+fitlnprice1 <- auto.arima(pricearima1, ic="aic", trace=T)
+fitlnprice2 <- auto.arima(pricearima2, ic="aic", trace=T)
+fitlnprice3 <- auto.arima(pricearima3, ic="aic", seasonal=F, trace=T)
+fitlnprice4 <- auto.arima(pricearima4, ic="aic", seasonal=F, trace=T)
+forecastedvalues_ln=forecast(fitlnprice, h=23)
+forecastedvalues_ln1=forecast(fitlnprice1, h=23)
+forecastedvalues_ln2=forecast(fitlnprice2, h=23)
+forecastedvalues_ln3=forecast(fitlnprice3, h=23)
+forecastedvalues_ln4=forecast(fitlnprice4, h=23)
+forecastedvaluesextracted=as.numeric(forecastedvalues_ln$mean)
+forecastedvaluesextracted1=as.numeric(forecastedvalues_ln1$mean)
+forecastedvaluesextracted2=as.numeric(forecastedvalues_ln2$mean)
+forecastedvaluesextracted3=as.numeric(forecastedvalues_ln3$mean)
+forecastedvaluesextracted4=as.numeric(forecastedvalues_ln4$mean)
+finalforecastvalues=exp(forecastedvaluesextracted)
+finalforecastvalues1=exp(forecastedvaluesextracted1)
+finalforecastvalues2=exp(forecastedvaluesextracted2)
+finalforecastvalues3=exp(forecastedvaluesextracted3)
+finalforecastvalues4=exp(forecastedvaluesextracted4)
+
+## Százalékos hiba
+df<-data.frame(arfolyamokjan$EURHUF[5218:5240],finalforecastvalues)
+col_headings<-c ("Aktuális Árfolyam", "Előrejelzett Árfolyam")
+names(df)<- col_headings
+attach(df)
+percentage_error=((df$'Aktuális Árfolyam' - df$'Előrejelzett Árfolyam')/(df$'Aktuális Árfolyam'))
+percentage_error
+mean(percentage_error)
+df
+df1<-data.frame(arfolyamokjan$EURPLN[5218:5240],finalforecastvalues1)
+col_headings<-c ("Aktuális Árfolyam", "Előrejelzett Árfolyam")
+names(df1)<- col_headings
+attach(df1)
+percentage_error1=((df1$'Aktuális Árfolyam' - df1$'Előrejelzett Árfolyam')/(df1$'Aktuális Árfolyam'))
+percentage_error1
+mean(percentage_error1)
+df1
+df2<-data.frame(arfolyamokjan$EURCZK[5218:5240],finalforecastvalues2)
+col_headings<-c ("Aktuális Árfolyam", "Előrejelzett Árfolyam")
+names(df2)<- col_headings
+attach(df2)
+percentage_error2=((df2$'Aktuális Árfolyam' - df2$'Előrejelzett Árfolyam')/(df2$'Aktuális Árfolyam'))
+percentage_error2
+mean(percentage_error2)
+df2
+df3<-data.frame(arfolyamokjan$EURRON[5218:5240],finalforecastvalues3)
+col_headings<-c ("Aktuális Árfolyam", "Előrejelzett Árfolyam")
+names(df3)<- col_headings
+attach(df3)
+percentage_error3=((df3$'Aktuális Árfolyam' - df3$'Előrejelzett Árfolyam')/(df3$'Aktuális Árfolyam'))
+percentage_error3
+mean(percentage_error3)
+df3
+df4<-data.frame(arfolyamokjan$EURCHF[5218:5240],finalforecastvalues4)
+col_headings<-c ("Aktuális Árfolyam", "Előrejelzett Árfolyam")
+names(df4)<- col_headings
+attach(df4)
+percentage_error4=((df4$'Aktuális Árfolyam' - df4$'Előrejelzett Árfolyam')/(df4$'Aktuális Árfolyam'))
+percentage_error4
+mean(percentage_error4)
+df4
+
+## REZIDUUM TESZTEK ##
+##Ljung-Box
+Box.test(fitlnprice$resid, lag=5, type="Ljung-Box")
+Box.test(fitlnprice1$resid, lag=5, type="Ljung-Box")
+Box.test(fitlnprice2$resid, lag=5, type="Ljung-Box")
+Box.test(fitlnprice3$resid, lag=5, type="Ljung-Box")
+Box.test(fitlnprice4$resid, lag=5, type="Ljung-Box")
+##Godfrey-Breusch
+res<-lm(fitlnprice$resid~1)
+res1<-lm(fitlnprice1$resid~1)
+res2<-lm(fitlnprice2$resid~1)
+res3<-lm(fitlnprice3$resid~1)
+res4<-lm(fitlnprice4$resid~1)
+bgtest(res, order=5)
+bgtest(res1, order=5)
+bgtest(res2, order=5)
+bgtest(res3, order=5)
+bgtest(res4, order=5)
+#Jarque-Bera Teszt
+jarque.bera.test(fitlnprice$resid)
+jarque.bera.test(fitlnprice1$resid)
+jarque.bera.test(fitlnprice2$resid)
+jarque.bera.test(fitlnprice3$resid)
+jarque.bera.test(fitlnprice4$resid)
+##Andrews Törés teszt a reziduum négyzeteken
+f1 <- Fstats(fitlnprice$resid^2~1)
+f2 <- Fstats(fitlnprice1$resid^2~1)
+f3 <- Fstats(fitlnprice2$resid^2~1)
+f4 <- Fstats(fitlnprice3$resid^2~1)
+f5 <- Fstats(fitlnprice4$resid^2~1)
+sctest(f1)
+sctest(f2)
+sctest(f3)
+sctest(f4)
+sctest(f5)
+
+## Grafikai ábrázolás ##
+
+## Becsült érték vs. Reziduum
+eurhuffit <- ts(diff(fitted(fitlnprice),1))
+eurhufres <- ts(residuals(fitlnprice))
+d1d2<- ts.intersect(eurhuffit,eurhufres,dframe=T)
+lmd1 <- lm(eurhuffit~eurhufres, data=d1d2)
+eurplnfit <- ts(diff(fitted(fitlnprice1),1))
+eurplnres <- ts(residuals(fitlnprice1))
+d3d4<- ts.intersect(eurplnfit,eurplnres,dframe=T)
+lmd2 <- lm(eurplnfit~eurplnres, data=d3d4)
+eurczkfit <- ts(diff(fitted(fitlnprice2),1))
+eurczkres <- ts(residuals(fitlnprice2))
+d5d6<- ts.intersect(eurczkfit,eurczkres,dframe=T)
+lmd3 <- lm(eurczkfit~eurczkres, data=d5d6)
+eurronfit <- ts(diff(fitted(fitlnprice3),1))
+eurronres <- ts(residuals(fitlnprice3))
+d7d8<- ts.intersect(eurronfit,eurronres,dframe=T)
+lmd4 <- lm(eurronfit~eurronres, data=d7d8)
+eurchffit <- ts(diff(fitted(fitlnprice4),1))
+eurchfres <- ts(residuals(fitlnprice4))
+d9d10<- ts.intersect(eurchffit,eurchfres,dframe=T)
+lmd5 <- lm(eurchffit~eurchfres, data=d9d10)
+layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
+plot(lmd1, which=1, caption="EUR/HUF ARIMA (2,1,0) - drift: Becsült érték vs. Reziduum")
+plot(lmd2, which=1,caption="EUR/PLN ARIMA (2,1,2) - drift: Becsült érték vs. Reziduum")
+plot(lmd3, which=1,caption="EUR/CZK ARIMA (2,1,0) - drift: Becsült érték vs. Reziduum")
+plot(lmd4, which=1,caption="EUR/RON ARIMA (1,1,1) - drift: Becsült érték vs. Reziduum")
+plot(lmd5, which=1,caption="EUR/CHF ARIMA (2,1,2): Becsült érték vs. Reziduum")
+
+## Árfolyam + loghozam
+h1<-data.frame(arfolyamok$Date, eurhuflog$EURHUF, arfolyamok$EURHUF)
+h2<-data.frame(arfolyamok$Date, eurplnlog$EURPLN, arfolyamok$EURPLN)
+h3<-data.frame(arfolyamok$Date, eurczklog$EURCZK, arfolyamok$EURCZK)
+h4<-data.frame(arfolyamok$Date, eurronlog$EURRON, arfolyamok$EURRON)
+h5<-data.frame(arfolyamok$Date, eurchflog$EURCHF, arfolyamok$EURCHF)
+g1 <- ggplot(data=h1, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURHUF), color = "black") +geom_line(aes(y = eurhuflog.EURHUF*1800), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(228.5, 270.0, 300.0, 336.4), sec.axis = sec_axis(~./1800, name = "Loghozam", breaks=c(-0.04,0.00,0.03, 0.07)))+theme_bw()+ggtitle("EUR/HUF")+labs(x = "Dátum")
+g2 <- ggplot(data=h2, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURPLN), color = "black") +geom_line(aes(y = eurplnlog.EURPLN*30), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(3.20, 3.70, 4.25, 4.91), sec.axis = sec_axis(~./30, name = "Loghozam", breaks=c(-0.05,0.00,0.03,0.06)))+theme_bw()+ggtitle("EUR/PLN")+labs(x = "Dátum")
+g3 <- ggplot(data=h3, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURCZK), color = "black") +geom_line(aes(y = eurczklog.EURCZK*200), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(23.0, 28.0, 32.0, 37.1), sec.axis = sec_axis(~./200, name = "Loghozam", breaks=c(-0.04,0.00,0.02,0.05)))+theme_bw()+ggtitle("EUR/CZK")+labs(x = "Dátum")
+g4 <- ggplot(data=h4, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURRON), color = "black") +geom_line(aes(y = eurronlog.EURRON*25), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(1.77, 2.60, 3.65, 4.80), sec.axis = sec_axis(~./25, name = "Loghozam", breaks=c(-0.05,0.00,0.03,0.07)))+theme_bw()+ggtitle("EUR/RON")+labs(x = "Dátum")
+g5 <- ggplot(data=h5, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURCHF), color = "black") +geom_line(aes(y = eurchflog.EURCHF*5), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(0.98, 1.20, 1.45, 1.68), sec.axis = sec_axis(~./5, name = "Loghozam", breaks=c(-0.21,0.00,0.04,0.08)))+theme_bw()+ggtitle("EUR/CHF")+labs(x = "Dátum")
+layout<- matrix(c(1,1,2,2,3,3,4,4,6,5,5,6), nrow=3, byrow=TRUE)
+grid.arrange(g2,g3,g4,g5,g1, layout_matrix=layout)
+
+## Eloszlások
+layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
+m=mean(eurhuflog$EURHUF); s=sd(eurhuflog$EURHUF);
+m=mean(eurplnlog$EURPLN); s=sd(eurplnlog$EURPLN);
+m=mean(eurczklog$EURCZK); s=sd(eurczklog$EURCZK);
+m=mean(eurronlog$EURRON); s=sd(eurronlog$EURRON);
+m=mean(eurchflog$EURCHF); s=sd(eurchflog$EURCHF);
+plot(density(eurhuflog$EURHUF), main="EUR/HUF Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurplnlog$EURPLN), main="EUR/PLN Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurczklog$EURCZK), main="EUR/CZK Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurronlog$EURRON), main="EUR/RON Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurchflog$EURCHF), main="EUR/CHF Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+
+## QQ gráf (Modell reziduum)
+layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
+qqnorm(fitlnprice$resid, main= "ARIMA(2,1,0) [d] Modell Reziduumok QQ gráfja (EUR/HUF)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice$resid);
+qqnorm(fitlnprice1$resid, main= "ARIMA(2,1,2) [d] Modell Reziduumok QQ gráfja (EUR/PLN)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice1$resid);
+qqnorm(fitlnprice2$resid, main= "ARIMA(2,1,0) [d] Modell Reziduumok QQ gráfja (EUR/CZK)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice2$resid);
+qqnorm(fitlnprice3$resid, main= "ARIMA(1,1,1) [d] Modell Reziduumok QQ gráfja (EUR/RON)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice3$resid);
+qqnorm(fitlnprice4$resid, main= "ARIMA(2,1,2) Modell Reziduumok QQ gráfja (EUR/CHF)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice4$resid);
+
+## Korrelációs diagram
+colnames(corrates)=c("HUF", "PLN", "CZK", "RON", "CHF")
+rownames(corrates)[rownames(corrates) == "EUR/HUF"] ="HUF"
+rownames(corrates)[rownames(corrates) == "EUR/PLN"] ="PLN"
+rownames(corrates)[rownames(corrates) == "EUR/CZK"] ="CZK"
+rownames(corrates)[rownames(corrates) == "EUR/RON"] ="RON"
+rownames(corrates)[rownames(corrates) == "EUR/CHF"] ="CHF"
+corrplot(corrates, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+## Devizapárok százalékos változása
+par(mfrow=c(1,1), oma= c(0,0,0,6), cex.lab=1.5)
+par(mar=c(6,6,6,6))
+maxVal <-max(max(arfolyamok$HUFEUR.CHANGE.BASE2000),max(arfolyamok$PLNEUR.CHANGE.BASE2000),max(arfolyamok$CZKEUR.CHANGE.BASE2000),max(arfolyamok$RONEUR.CHANGE.BASE2000),max(arfolyamok$CHFEUR.CHANGE.BASE2000))
+minVal <-min(min(arfolyamok$HUFEUR.CHANGE.BASE2000),min(arfolyamok$PLNEUR.CHANGE.BASE2000),min(arfolyamok$CZKEUR.CHANGE.BASE2000),min(arfolyamok$RONEUR.CHANGE.BASE2000),min(arfolyamok$CHFEUR.CHANGE.BASE2000))
+plot(arfolyamok$HUFEUR.CHANGE.BASE2000~arfolyamok$Date,type="l",
+lwd=2, col="red", xlab="", ylab="%", main="Regionális devizák %-os változása (Bázisidőszak:2000.01.03., Euróban kifejezve)", ylim=c(0,maxVal), yaxt="n")
+axis(2, at=c(seq(from=0, to= 160, by= 20)),las=1)
+abline(v=as.numeric(arfolyamok$Date[74]), col="lightblue", lwd=3, lty=5)
+abline(v=as.numeric(arfolyamok$Date[1262]), col="yellowgreen", lwd=3, lty=5)
+abline(v=as.numeric(arfolyamok$Date[2128]), col="brown1", lwd=3, lty=5)
+abline(v=as.numeric(arfolyamok$Date[3924]), col="gold", lwd=3, lty=5)
+##grid()
+abline(h=c(0,20,40,60,80,100,120,140,160), lty=2, col="grey")
+box()
+par(new=TRUE)
+plot(arfolyamok$PLNEUR.CHANGE.BASE2000~arfolyamok$Date, type="l", lwd=1.5, ann=FALSE, col="navy", ylim=c(0,maxVal), yaxt="n")
+par(new=TRUE)
+plot(arfolyamok$CZKEUR.CHANGE.BASE2000~arfolyamok$Date, type="l", lwd=1.5, ann=FALSE, col="brown", ylim=c(0,maxVal), yaxt="n")
+par(new=TRUE)
+plot(arfolyamok$RONEUR.CHANGE.BASE2000~arfolyamok$Date, type="l", lwd=1.5, ann=FALSE, col="forestgreen", ylim=c(0,maxVal), yaxt="n")
+text(x=as.numeric(arfolyamok$Date[224]),y=arfolyamok$RONEUR.CHANGE.BASE2000[5200],label="2000", pos=1,cex=1.5)
+text(x=as.numeric(arfolyamok$Date[1412]),y=arfolyamok$RONEUR.CHANGE.BASE2000[5200],label="2004", pos=1,cex=1.5)
+text(x=as.numeric(arfolyamok$Date[2278]),y=arfolyamok$RONEUR.CHANGE.BASE2000[5200],label="2008", pos=1,cex=1.5)
+text(x=as.numeric(arfolyamok$Date[4074]),y=arfolyamok$RONEUR.CHANGE.BASE2000[5200],label="2015", pos=1,cex=1.5)
+par(new=TRUE)
+plot(arfolyamok$CHFEUR.CHANGE.BASE2000~arfolyamok$Date, type="l", lwd=1.5, ann=FALSE, col="orange", ylim=c(0,maxVal), yaxt="n")
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("right", c("HUF/EUR","PLN/EUR","CZK/EUR","RON/EUR","CHF/EUR"), fill=c("red","navy","brown","forestgreen","orange"),xpd=TRUE, inset=c(-0.06,0), bty="n", cex=1 )
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("bottomright", c("Lengyel lebegő árfolyam","Román lebegő árfolyam","Magyar lebegő árfolyam","Svájci lebegő árfolyam"), fill=c("lightblue","coral4","yellowgreen","brown1","gold"),xpd=TRUE, inset=c(-0.12,0), bty="n", cex=0.77)
+
+##ACF és PACF korrelogram
+layout(mat = matrix(c(1,2,3,4,5,6,7,8,9,10), nrow = 5, byrow = TRUE))
+par(mar=c(3,3,3,3))
+plot(acf(difflnprice,plot=F) [1:24], main="ACF EUR/HUF Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice,plot=F) [0:24], main="PACF EUR/HUF Log- és Differenciált (1) adatok")
+plot(acf(difflnprice1,plot=F) [1:24], main="ACF EUR/PLN Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice1,plot=F) [0:24], main="PACF EUR/PLN Log- és Differenciált (1) adatok")
+plot(acf(difflnprice2,plot=F) [1:24], main="ACF EUR/CZK Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice2,plot=F) [0:24], main="PACF EUR/CZK Log- és Differenciált (1) adatok")
+plot(acf(difflnprice3,plot=F) [1:24], main="ACF EUR/RON Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice3,plot=F) [0:24], main="PACF EUR/RON Log- és Differenciált (1) adatok")
+plot(acf(difflnprice4,plot=F) [1:24], main="ACF EUR/CHF Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice4,plot=F) [0:24], main="PACF EUR/CHF Log- és Differenciált (1) adatok")
+
+##ARIMA teljes időszak
+layout(matrix(c(1,1,2,3,4,5,0), 3, 2, byrow = TRUE))
+plot(forecastedvalues_ln, main="EUR/HUF ARIMA Előrejelzés (2,1,0) [with Drift]")
+grid()
+box()
+plot(forecastedvalues_ln1, main="EUR/PLN ARIMA Előrejelzés (2,1,2) [with Drift]")
+grid()
+box()
+plot(forecastedvalues_ln2, main="EUR/CZK ARIMA Előrejelzés (2,1,0) [with Drift]")
+grid()
+box()
+plot(forecastedvalues_ln3, main="EUR/RON ARIMA Előrejelzés (1,1,1) [with Drift]")
+grid()
+box()
+plot(forecastedvalues_ln4, main="EUR/CHF ARIMA Előrejelzés (2,1,2)")
+grid()
+box()
+
+## Andrews supF gráf
+layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
+plot(f1, main="ARIMA(2,1,0) [d] modell reziduum négyzet (EUR/HUF)")
+lines(breakpoints(f1))
+plot(f2, main="ARIMA(2,1,2) [d] modell reziduum négyzet (EUR/PLN)")
+lines(breakpoints(f2))
+plot(f3, main="ARIMA(2,1,0) [d] modell reziduum négyzet (EUR/CZK)")
+lines(breakpoints(f3))
+plot(f4, main="ARIMA(1,1,1) [d] modell reziduum négyzet (EUR/RON)")
+lines(breakpoints(f4))
+plot(f5, main="ARIMA(2,1,2) modell reziduum négyzet (EUR/HUF)")
+lines(breakpoints(f5))
+
+## ARIMA (2019-től, ránagyítva, visszaalakítva nominális értékekre)
+date <-arfolyamokjan$Date[4957:5240]
+datesf <- arfolyamokjan$Date[4957:5217]
+datesh <- arfolyamokjan$Date[3392:5217]
+fitse <- xts(exp(fitlnprice$fitted), order.by=datesh)
+fitse1 <- xts(exp(fitlnprice1$fitted), order.by=datesh)
+fitse2 <- xts(exp(fitlnprice2$fitted), order.by=datesh)
+fitse3 <- xts(exp(fitlnprice3$fitted), order.by=datesh)
+fitse4 <- xts(exp(fitlnprice4$fitted), order.by=datesh)
+fits <- fitse["2019/2020"]
+fits1 <- fitse1["2019/2020"]
+fits2 <- fitse2["2019/2020"]
+fits3 <- fitse3["2019/2020"]
+fits4 <- fitse4["2019/2020"]
+fcastdates <- as.Date(arfolyamokjan$Date[5218:5240])
+pricef<- xts(arfolyamokjan$EURHUF[5218:5240], order.by=fcastdates)
+pricef1<- xts(arfolyamokjan$EURPLN[5218:5240], order.by=fcastdates)
+pricef2<- xts(arfolyamokjan$EURCZK[5218:5240], order.by=fcastdates)
+pricef3<- xts(arfolyamokjan$EURRON[5218:5240], order.by=fcastdates)
+pricef4<- xts(arfolyamokjan$EURCHF[5218:5240], order.by=fcastdates)
+meancast <- xts(exp(forecastedvalues_ln$mean), order.by=fcastdates)
+meancast1 <- xts(exp(forecastedvalues_ln1$mean), order.by=fcastdates)
+meancast2 <- xts(exp(forecastedvalues_ln2$mean), order.by=fcastdates)
+meancast3 <- xts(exp(forecastedvalues_ln3$mean), order.by=fcastdates)
+meancast4 <- xts(exp(forecastedvalues_ln4$mean), order.by=fcastdates)
+lowercast95  <- xts(exp(forecastedvalues_ln$lower[1:23]), order.by=fcastdates)
+lowercast951  <- xts(exp(forecastedvalues_ln1$lower[1:23]), order.by=fcastdates)
+lowercast952  <- xts(exp(forecastedvalues_ln2$lower[1:23]), order.by=fcastdates)
+lowercast953  <- xts(exp(forecastedvalues_ln3$lower[1:23]), order.by=fcastdates)
+lowercast954  <- xts(exp(forecastedvalues_ln4$lower[1:23]), order.by=fcastdates)
+uppercast95  <- xts(exp(forecastedvalues_ln$upper[1:23]), order.by=fcastdates)
+uppercast951  <- xts(exp(forecastedvalues_ln1$upper[1:23]), order.by=fcastdates)
+uppercast952  <- xts(exp(forecastedvalues_ln2$upper[1:23]), order.by=fcastdates)
+uppercast953  <- xts(exp(forecastedvalues_ln3$upper[1:23]), order.by=fcastdates)
+uppercast954  <- xts(exp(forecastedvalues_ln4$upper[1:23]), order.by=fcastdates)
+lowercast80  <- xts(exp(forecastedvalues_ln$lower[24:46]), order.by=fcastdates)
+lowercast801  <- xts(exp(forecastedvalues_ln1$lower[24:46]), order.by=fcastdates)
+lowercast802  <- xts(exp(forecastedvalues_ln2$lower[24:46]), order.by=fcastdates)
+lowercast803  <- xts(exp(forecastedvalues_ln3$lower[24:46]), order.by=fcastdates)
+lowercast804  <- xts(exp(forecastedvalues_ln4$lower[24:46]), order.by=fcastdates)
+uppercast80  <- xts(exp(forecastedvalues_ln$upper[24:46]), order.by=fcastdates)
+uppercast801  <- xts(exp(forecastedvalues_ln1$upper[24:46]), order.by=fcastdates)
+uppercast802  <- xts(exp(forecastedvalues_ln2$upper[24:46]), order.by=fcastdates)
+uppercast803  <- xts(exp(forecastedvalues_ln3$upper[24:46]), order.by=fcastdates)
+uppercast804  <- xts(exp(forecastedvalues_ln4$upper[24:46]), order.by=fcastdates)
+frame <- merge(fits, meancast, uppercast95, uppercast80, lowercast95, lowercast80, pricef, all=T, fill=NA)
+frame1 <- merge(fits1, meancast1, uppercast951, uppercast801, lowercast951, lowercast801, pricef1, all=T, fill=NA)
+frame2 <- merge(fits2, meancast2, uppercast952, uppercast802, lowercast952, lowercast802, pricef2, all=T, fill=NA)
+frame3 <- merge(fits3, meancast3, uppercast953, uppercast803, lowercast953, lowercast803, pricef3, all=T, fill=NA)
+frame4 <- merge(fits4, meancast4, uppercast954, uppercast804, lowercast954, lowercast804, pricef4, all=T, fill=NA)
+forecasted <- fortify(frame)
+forecasted1 <- fortify(frame1)
+forecasted2 <- fortify(frame2)
+forecasted3 <- fortify(frame3)
+forecasted4 <- fortify(frame4)
+f1 <- ggplot(data=forecasted, aes(x=Index, group=1)) + geom_line(aes(y = fits), color = "black") +geom_line(aes(y = pricef), color = "red", lwd=0.75) + geom_line(aes(y = meancast), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast95, ymax=uppercast95), alpha=0.2)+geom_ribbon(aes(ymin=lowercast80, ymax=uppercast80), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EUR/HUF)")+labs(x = "Dátum", y="Árfolyam")
+f2 <- ggplot(data=forecasted1, aes(x=Index, group=1)) + geom_line(aes(y = fits1), color = "black") +geom_line(aes(y = pricef1), color = "red", lwd=0.75) + geom_line(aes(y = meancast1), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast951, ymax=uppercast951), alpha=0.2)+geom_ribbon(aes(ymin=lowercast801, ymax=uppercast801), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) [with Drift] (EUR/PLN)")+labs(x = "Dátum", y="Árfolyam")
+f3 <- ggplot(data=forecasted2, aes(x=Index, group=1)) + geom_line(aes(y = fits2), color = "black") +geom_line(aes(y = pricef2), color = "red", lwd=0.75) + geom_line(aes(y = meancast2), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast952, ymax=uppercast952), alpha=0.2)+geom_ribbon(aes(ymin=lowercast802, ymax=uppercast802), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EUR/CZK)")+labs(x = "Dátum", y="Árfolyam")
+f4 <- ggplot(data=forecasted3, aes(x=Index, group=1)) + geom_line(aes(y = fits3), color = "black") +geom_line(aes(y = pricef3), color = "red", lwd=0.75) + geom_line(aes(y = meancast3), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast953, ymax=uppercast953), alpha=0.2)+geom_ribbon(aes(ymin=lowercast803, ymax=uppercast803), alpha=0.15)+theme_bw()+ggtitle("ARIMA (1,1,1) [with Drift] (EUR/RON)")+labs(x = "Dátum", y="Árfolyam")
+f5 <- ggplot(data=forecasted4, aes(x=Index, group=1)) + geom_line(aes(y = fits4, color = "Tesztidősor [részlet] 2019- (2013-2020)")) +geom_line(aes(y = pricef4, color="Tényleges alakulás 2020. január"), lwd=0.75) + geom_line(aes(y = meancast4, color = "Előrejelzés 2020. január"), lwd=0.75)+geom_ribbon(aes(ymin=lowercast954, ymax=uppercast954), alpha=0.2)+geom_ribbon(aes(ymin=lowercast804, ymax=uppercast804), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) (EUR/CHF)")+labs(x = "Dátum", y="Árfolyam", color="Jelmagyarázat:")+ scale_color_manual(values=c("Tesztidősor [részlet] 2019- (2013-2020)"="black","Tényleges alakulás 2020. január"="red","Előrejelzés 2020. január"="blue"))+theme(legend.position=c(1.3,0.5), legend.background = element_blank(),legend.box.background = element_rect(colour = "black"))
+layout<- matrix(c(1,1,2,2,3,3,4,4,6,5,5,6), nrow=3, byrow=TRUE)
+grid.arrange(f1,f2,f3,f4,f5, layout_matrix=layout)
