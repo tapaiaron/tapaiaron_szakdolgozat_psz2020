@@ -82,6 +82,10 @@ colnames(eurronlog)=c("Idő", "EURRON")
 eurchflog <- data.frame(arfolyamok$Date, periodReturn(eurchf.xts,period="daily", type="log"))
 colnames(eurchflog)=c("Idő", "EURCHF")
 
+## Loghozamok egybe
+returns <- data.frame(arfolyamok$Date, periodReturn(eurhuf.xts,period="daily", type="log"), periodReturn(eurpln.xts,period="daily", type="log"), periodReturn(eurczk.xts,period="daily", type="log"), periodReturn(eurron.xts,period="daily", type="log"), periodReturn(eurchf.xts,period="daily", type="log"), periodReturn(eurusd.xts,period="daily", type="log"), periodReturn(chfhuf.xts,period="daily", type="log"))
+colnames(returns)=c("Idő", "EURHUF", "EURPLN", "EURCZK", "EURRON", "EURCHF", "EURUSD", "CHFHUF")
+
 ## Átlagos adatszám évente
 years1 <- format(arfolyamok$Date, "%Y")
 tab1 <- table(years1)
@@ -90,7 +94,7 @@ mean(tab1[1:(length(tab1) - 1)])
 
 ## Korrelációs mátrix
 cortable <- data.frame(eurhuflog$EURHUF,eurplnlog$EURPLN,eurczklog$EURCZK,eurronlog$EURRON,eurchflog$EURCHF)
-colnames(cortable)=c("EUR/HUF", "EUR/PLN", "EUR/CZK", "EUR/RON", "EUR/CHF")
+colnames(cortable)=c("EURHUF", "EURPLN", "EURCZK", "EURRON", "EURCHF")
 corrates <- cor(cortable)
 round(corrates, 2)
 corrates2 <- rcorr(as.matrix(cortable))
@@ -336,17 +340,6 @@ jarque.bera.test(fitlnprice1$resid)
 jarque.bera.test(fitlnprice2$resid)
 jarque.bera.test(fitlnprice3$resid)
 jarque.bera.test(fitlnprice4$resid)
-##Andrews Törés teszt a reziduum négyzeteken
-f1v <- Fstats(fitlnprice$resid^2~1)
-f2v <- Fstats(fitlnprice1$resid^2~1)
-f3v <- Fstats(fitlnprice2$resid^2~1)
-f4v <- Fstats(fitlnprice3$resid^2~1)
-f5v <- Fstats(fitlnprice4$resid^2~1)
-sctest(f1v)
-sctest(f2v)
-sctest(f3v)
-sctest(f4v)
-sctest(f5v)
 
 ## Grafikai ábrázolás ##
 
@@ -372,11 +365,11 @@ eurchfres <- ts(residuals(fitlnprice4))
 d9d10<- ts.intersect(eurchffit,eurchfres,dframe=T)
 lmd5 <- lm(eurchffit~eurchfres, data=d9d10)
 layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-plot(lmd1, which=1, caption="EUR/HUF ARIMA (2,1,0) - drift: Becsült érték vs. Reziduum")
-plot(lmd2, which=1,caption="EUR/PLN ARIMA (2,1,2) - drift: Becsült érték vs. Reziduum")
-plot(lmd3, which=1,caption="EUR/CZK ARIMA (2,1,0) - drift: Becsült érték vs. Reziduum")
-plot(lmd4, which=1,caption="EUR/RON ARIMA (1,1,1) - drift: Becsült érték vs. Reziduum")
-plot(lmd5, which=1,caption="EUR/CHF ARIMA (2,1,2): Becsült érték vs. Reziduum")
+plot(lmd1, which=1, caption="EURHUF ARIMA (2,1,0) - drift: Becsült érték vs. Reziduum")
+plot(lmd2, which=1,caption="EURPLN ARIMA (2,1,2) - drift: Becsült érték vs. Reziduum")
+plot(lmd3, which=1,caption="EURCZK ARIMA (2,1,0) - drift: Becsült érték vs. Reziduum")
+plot(lmd4, which=1,caption="EURRON ARIMA (1,1,1) - drift: Becsült érték vs. Reziduum")
+plot(lmd5, which=1,caption="EURCHF ARIMA (2,1,2): Becsült érték vs. Reziduum")
 
 ## Árfolyam + loghozam
 h1<-data.frame(arfolyamok$Date, eurhuflog$EURHUF, arfolyamok$EURHUF)
@@ -384,11 +377,11 @@ h2<-data.frame(arfolyamok$Date, eurplnlog$EURPLN, arfolyamok$EURPLN)
 h3<-data.frame(arfolyamok$Date, eurczklog$EURCZK, arfolyamok$EURCZK)
 h4<-data.frame(arfolyamok$Date, eurronlog$EURRON, arfolyamok$EURRON)
 h5<-data.frame(arfolyamok$Date, eurchflog$EURCHF, arfolyamok$EURCHF)
-g1 <- ggplot(data=h1, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURHUF), color = "black") +geom_line(aes(y = eurhuflog.EURHUF*1800), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(228.5, 270.0, 300.0, 336.4), sec.axis = sec_axis(~./1800, name = "Loghozam", breaks=c(-0.04,0.00,0.03, 0.07)))+theme_bw()+ggtitle("EUR/HUF")+labs(x = "Dátum")
-g2 <- ggplot(data=h2, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURPLN), color = "black") +geom_line(aes(y = eurplnlog.EURPLN*30), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(3.20, 3.70, 4.25, 4.91), sec.axis = sec_axis(~./30, name = "Loghozam", breaks=c(-0.05,0.00,0.03,0.06)))+theme_bw()+ggtitle("EUR/PLN")+labs(x = "Dátum")
-g3 <- ggplot(data=h3, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURCZK), color = "black") +geom_line(aes(y = eurczklog.EURCZK*200), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(23.0, 28.0, 32.0, 37.1), sec.axis = sec_axis(~./200, name = "Loghozam", breaks=c(-0.04,0.00,0.02,0.05)))+theme_bw()+ggtitle("EUR/CZK")+labs(x = "Dátum")
-g4 <- ggplot(data=h4, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURRON), color = "black") +geom_line(aes(y = eurronlog.EURRON*25), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(1.77, 2.60, 3.65, 4.80), sec.axis = sec_axis(~./25, name = "Loghozam", breaks=c(-0.05,0.00,0.03,0.07)))+theme_bw()+ggtitle("EUR/RON")+labs(x = "Dátum")
-g5 <- ggplot(data=h5, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURCHF), color = "black") +geom_line(aes(y = eurchflog.EURCHF*5), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(0.98, 1.20, 1.45, 1.68), sec.axis = sec_axis(~./5, name = "Loghozam", breaks=c(-0.21,0.00,0.04,0.08)))+theme_bw()+ggtitle("EUR/CHF")+labs(x = "Dátum")
+g1 <- ggplot(data=h1, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURHUF), color = "black") +geom_line(aes(y = eurhuflog.EURHUF*1800), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(228.5, 270.0, 300.0, 336.4), sec.axis = sec_axis(~./1800, name = "Loghozam", breaks=c(-0.04,0.00,0.03, 0.07)))+theme_bw()+ggtitle("EURHUF")+labs(x = "Dátum")
+g2 <- ggplot(data=h2, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURPLN), color = "black") +geom_line(aes(y = eurplnlog.EURPLN*30), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(3.20, 3.70, 4.25, 4.91), sec.axis = sec_axis(~./30, name = "Loghozam", breaks=c(-0.05,0.00,0.03,0.06)))+theme_bw()+ggtitle("EURPLN")+labs(x = "Dátum")
+g3 <- ggplot(data=h3, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURCZK), color = "black") +geom_line(aes(y = eurczklog.EURCZK*200), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(23.0, 28.0, 32.0, 37.1), sec.axis = sec_axis(~./200, name = "Loghozam", breaks=c(-0.04,0.00,0.02,0.05)))+theme_bw()+ggtitle("EURCZK")+labs(x = "Dátum")
+g4 <- ggplot(data=h4, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURRON), color = "black") +geom_line(aes(y = eurronlog.EURRON*25), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(1.77, 2.60, 3.65, 4.80), sec.axis = sec_axis(~./25, name = "Loghozam", breaks=c(-0.05,0.00,0.03,0.07)))+theme_bw()+ggtitle("EURRON")+labs(x = "Dátum")
+g5 <- ggplot(data=h5, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfolyamok.EURCHF), color = "black") +geom_line(aes(y = eurchflog.EURCHF*5), color = "darkblue") +theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous("Árfolyam", breaks=c(0.98, 1.20, 1.45, 1.68), sec.axis = sec_axis(~./5, name = "Loghozam", breaks=c(-0.21,0.00,0.04,0.08)))+theme_bw()+ggtitle("EURCHF")+labs(x = "Dátum")
 layout<- matrix(c(1,1,2,2,3,3,4,4,6,5,5,6), nrow=3, byrow=TRUE)
 grid.arrange(g2,g3,g4,g5,g1, layout_matrix=layout)
 
@@ -399,27 +392,27 @@ m=mean(eurplnlog$EURPLN); s=sd(eurplnlog$EURPLN);
 m=mean(eurczklog$EURCZK); s=sd(eurczklog$EURCZK);
 m=mean(eurronlog$EURRON); s=sd(eurronlog$EURRON);
 m=mean(eurchflog$EURCHF); s=sd(eurchflog$EURCHF);
-plot(density(eurhuflog$EURHUF), main="EUR/HUF Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
-plot(density(eurplnlog$EURPLN), main="EUR/PLN Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
-plot(density(eurczklog$EURCZK), main="EUR/CZK Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
-plot(density(eurronlog$EURRON), main="EUR/RON Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
-plot(density(eurchflog$EURCHF), main="EUR/CHF Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurhuflog$EURHUF), main="EURHUF Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurplnlog$EURPLN), main="EURPLN Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurczklog$EURCZK), main="EURCZK Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurronlog$EURRON), main="EURRON Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
+plot(density(eurchflog$EURCHF), main="EURCHF Loghozam eloszlás");curve(dnorm(x, mean=m,sd=s), from = -0.3, to = 0.2, add=TRUE, col="red")
 
 ## QQ gráf (Modell reziduum)
 layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-qqnorm(fitlnprice$resid, main= "ARIMA(2,1,0) [d] Modell Reziduumok QQ gráfja (EUR/HUF)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice$resid);
-qqnorm(fitlnprice1$resid, main= "ARIMA(2,1,2) [d] Modell Reziduumok QQ gráfja (EUR/PLN)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice1$resid);
-qqnorm(fitlnprice2$resid, main= "ARIMA(2,1,0) [d] Modell Reziduumok QQ gráfja (EUR/CZK)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice2$resid);
-qqnorm(fitlnprice3$resid, main= "ARIMA(1,1,1) [d] Modell Reziduumok QQ gráfja (EUR/RON)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice3$resid);
-qqnorm(fitlnprice4$resid, main= "ARIMA(2,1,2) Modell Reziduumok QQ gráfja (EUR/CHF)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice4$resid);
+qqnorm(fitlnprice$resid, main= "ARIMA(2,1,0) [d] Modell Reziduumok QQ gráfja (EURHUF)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice$resid);
+qqnorm(fitlnprice1$resid, main= "ARIMA(2,1,2) [d] Modell Reziduumok QQ gráfja (EURPLN)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice1$resid);
+qqnorm(fitlnprice2$resid, main= "ARIMA(2,1,0) [d] Modell Reziduumok QQ gráfja (EURCZK)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice2$resid);
+qqnorm(fitlnprice3$resid, main= "ARIMA(1,1,1) [d] Modell Reziduumok QQ gráfja (EURRON)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice3$resid);
+qqnorm(fitlnprice4$resid, main= "ARIMA(2,1,2) Modell Reziduumok QQ gráfja (EURCHF)", xlab="Elméleti kvantilisek", ylab="Minta kvantilisek");qqline(fitlnprice4$resid);
 
 ## Korrelációs diagram
 colnames(corrates)=c("HUF", "PLN", "CZK", "RON", "CHF")
-rownames(corrates)[rownames(corrates) == "EUR/HUF"] ="HUF"
-rownames(corrates)[rownames(corrates) == "EUR/PLN"] ="PLN"
-rownames(corrates)[rownames(corrates) == "EUR/CZK"] ="CZK"
-rownames(corrates)[rownames(corrates) == "EUR/RON"] ="RON"
-rownames(corrates)[rownames(corrates) == "EUR/CHF"] ="CHF"
+rownames(corrates)[rownames(corrates) == "EURHUF"] ="HUF"
+rownames(corrates)[rownames(corrates) == "EURPLN"] ="PLN"
+rownames(corrates)[rownames(corrates) == "EURCZK"] ="CZK"
+rownames(corrates)[rownames(corrates) == "EURRON"] ="RON"
+rownames(corrates)[rownames(corrates) == "EURCHF"] ="CHF"
 corrplot(corrates, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
 
 ## Devizapárok százalékos változása
@@ -451,7 +444,7 @@ par(new=TRUE)
 plot(arfolyamok$CHFEUR.CHANGE.BASE2000~arfolyamok$Date, type="l", lwd=1.5, ann=FALSE, col="red", ylim=c(0,maxVal), yaxt="n")
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("right", c("HUF/EUR","PLN/EUR","CZK/EUR","RON/EUR","CHF/EUR"), fill=c("forestgreen","navy","brown","orange","red"),xpd=TRUE, inset=c(+0.04,0), bty="n", cex=1.1 )
+legend("right", c("HUFEUR","PLNEUR","CZKEUR","RONEUR","CHFEUR"), fill=c("forestgreen","navy","brown","orange","red"),xpd=TRUE, inset=c(+0.04,0), bty="n", cex=1.1 )
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("bottomright", c("Lengyel lebegő árfolyam","Román lebegő árfolyam","Magyar lebegő árfolyam","Svájci lebegő árfolyam"), fill=c("lightblue","gold","yellowgreen","lightpink"),xpd=TRUE, inset=c(0.01,0), bty="n", cex=1)
@@ -459,47 +452,72 @@ legend("bottomright", c("Lengyel lebegő árfolyam","Román lebegő árfolyam","
 ##ACF és PACF korrelogram
 layout(mat = matrix(c(1,2,3,4,5,6,7,8,9,10), nrow = 5, byrow = TRUE))
 par(mar=c(3,3,3,3))
-plot(acf(difflnprice,plot=F) [1:24], main="ACF EUR/HUF Log- és Differenciált (1) adatok")
-plot(pacf(difflnprice,plot=F) [0:24], main="PACF EUR/HUF Log- és Differenciált (1) adatok")
-plot(acf(difflnprice1,plot=F) [1:24], main="ACF EUR/PLN Log- és Differenciált (1) adatok")
-plot(pacf(difflnprice1,plot=F) [0:24], main="PACF EUR/PLN Log- és Differenciált (1) adatok")
-plot(acf(difflnprice2,plot=F) [1:24], main="ACF EUR/CZK Log- és Differenciált (1) adatok")
-plot(pacf(difflnprice2,plot=F) [0:24], main="PACF EUR/CZK Log- és Differenciált (1) adatok")
-plot(acf(difflnprice3,plot=F) [1:24], main="ACF EUR/RON Log- és Differenciált (1) adatok")
-plot(pacf(difflnprice3,plot=F) [0:24], main="PACF EUR/RON Log- és Differenciált (1) adatok")
-plot(acf(difflnprice4,plot=F) [1:24], main="ACF EUR/CHF Log- és Differenciált (1) adatok")
-plot(pacf(difflnprice4,plot=F) [0:24], main="PACF EUR/CHF Log- és Differenciált (1) adatok")
+plot(acf(difflnprice,plot=F) [1:24], main="ACF EURHUF Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice,plot=F) [0:24], main="PACF EURHUF Log- és Differenciált (1) adatok")
+plot(acf(difflnprice1,plot=F) [1:24], main="ACF EURPLN Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice1,plot=F) [0:24], main="PACF EURPLN Log- és Differenciált (1) adatok")
+plot(acf(difflnprice2,plot=F) [1:24], main="ACF EURCZK Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice2,plot=F) [0:24], main="PACF EURCZK Log- és Differenciált (1) adatok")
+plot(acf(difflnprice3,plot=F) [1:24], main="ACF EURRON Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice3,plot=F) [0:24], main="PACF EURRON Log- és Differenciált (1) adatok")
+plot(acf(difflnprice4,plot=F) [1:24], main="ACF EURCHF Log- és Differenciált (1) adatok")
+plot(pacf(difflnprice4,plot=F) [0:24], main="PACF EURCHF Log- és Differenciált (1) adatok")
 
-##ARIMA teljes időszak
-layout(matrix(c(1,1,2,3,4,5,0), 3, 2, byrow = TRUE))
-plot(forecastedvalues_ln, main="EUR/HUF ARIMA Előrejelzés (2,1,0) [with Drift]")
-grid()
-box()
-plot(forecastedvalues_ln1, main="EUR/PLN ARIMA Előrejelzés (2,1,2) [with Drift]")
-grid()
-box()
-plot(forecastedvalues_ln2, main="EUR/CZK ARIMA Előrejelzés (2,1,0) [with Drift]")
-grid()
-box()
-plot(forecastedvalues_ln3, main="EUR/RON ARIMA Előrejelzés (1,1,1) [with Drift]")
-grid()
-box()
-plot(forecastedvalues_ln4, main="EUR/CHF ARIMA Előrejelzés (2,1,2)")
-grid()
-box()
-
-## Andrews supF gráf
-layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
-plot(f1, main="ARIMA(2,1,0) [d] modell reziduum négyzet (EUR/HUF)")
-lines(breakpoints(f1))
-plot(f2, main="ARIMA(2,1,2) [d] modell reziduum négyzet (EUR/PLN)")
-lines(breakpoints(f2))
-plot(f3, main="ARIMA(2,1,0) [d] modell reziduum négyzet (EUR/CZK)")
-lines(breakpoints(f3))
-plot(f4, main="ARIMA(1,1,1) [d] modell reziduum négyzet (EUR/RON)")
-lines(breakpoints(f4))
-plot(f5, main="ARIMA(2,1,2) modell reziduum négyzet (EUR/HUF)")
-lines(breakpoints(f5))
+##ARIMA teljes időszak vs validáció
+dateshx <- arfolyamokjan$Date[3392:5217]
+lnpricefx<- xts(log(arfolyamokjan$EURHUF[3392:5217]), order.by=dateshx)
+lnpricef1x<- xts(log(arfolyamokjan$EURPLN[3392:5217]), order.by=dateshx)
+lnpricef2x<- xts(log(arfolyamokjan$EURCZK[3392:5217]), order.by=dateshx)
+lnpricef3x<- xts(log(arfolyamokjan$EURRON[3392:5217]), order.by=dateshx)
+lnpricef4x<- xts(log(arfolyamokjan$EURCHF[3392:5217]), order.by=dateshx)
+fitsex <- xts(fitlnprice$fitted, order.by=dateshx)
+fitse1x <- xts(fitlnprice1$fitted, order.by=dateshx)
+fitse2x <- xts(fitlnprice2$fitted, order.by=dateshx)
+fitse3x <- xts(fitlnprice3$fitted, order.by=dateshx)
+fitse4x <- xts(fitlnprice4$fitted, order.by=dateshx)
+fcastdatesx <- as.Date(arfolyamokjan$Date[5218:5240])
+meancastx <- xts(forecastedvalues_ln$mean, order.by=fcastdatesx)
+meancast1x <- xts(forecastedvalues_ln1$mean, order.by=fcastdatesx)
+meancast2x <- xts(forecastedvalues_ln2$mean, order.by=fcastdatesx)
+meancast3x <- xts(forecastedvalues_ln3$mean, order.by=fcastdatesx)
+meancast4x <- xts(forecastedvalues_ln4$mean, order.by=fcastdatesx)
+lowercast95x  <- xts(forecastedvalues_ln$lower[1:23], order.by=fcastdatesx)
+lowercast951x  <- xts(forecastedvalues_ln1$lower[1:23], order.by=fcastdatesx)
+lowercast952x  <- xts(forecastedvalues_ln2$lower[1:23], order.by=fcastdatesx)
+lowercast953x  <- xts(forecastedvalues_ln3$lower[1:23], order.by=fcastdatesx)
+lowercast954x  <- xts(forecastedvalues_ln4$lower[1:23], order.by=fcastdatesx)
+uppercast95x  <- xts(forecastedvalues_ln$upper[1:23], order.by=fcastdatesx)
+uppercast951x  <- xts(forecastedvalues_ln1$upper[1:23], order.by=fcastdatesx)
+uppercast952x  <- xts(forecastedvalues_ln2$upper[1:23], order.by=fcastdates)
+uppercast953x  <- xts(forecastedvalues_ln3$upper[1:23], order.by=fcastdates)
+uppercast954x  <- xts(forecastedvalues_ln4$upper[1:23], order.by=fcastdates)
+lowercast80x  <- xts(forecastedvalues_ln$lower[24:46], order.by=fcastdates)
+lowercast801x  <- xts(forecastedvalues_ln1$lower[24:46], order.by=fcastdates)
+lowercast802x  <- xts(forecastedvalues_ln2$lower[24:46], order.by=fcastdates)
+lowercast803x  <- xts(forecastedvalues_ln3$lower[24:46], order.by=fcastdates)
+lowercast804x  <- xts(forecastedvalues_ln4$lower[24:46], order.by=fcastdates)
+uppercast80x  <- xts(forecastedvalues_ln$upper[24:46], order.by=fcastdates)
+uppercast801x  <- xts(forecastedvalues_ln1$upper[24:46], order.by=fcastdates)
+uppercast802x  <- xts(forecastedvalues_ln2$upper[24:46], order.by=fcastdates)
+uppercast803x  <- xts(forecastedvalues_ln3$upper[24:46], order.by=fcastdates)
+uppercast804x  <- xts(forecastedvalues_ln4$upper[24:46], order.by=fcastdates)
+framex <- merge(fitsex, lnpricefx, meancastx, uppercast95x, uppercast80x, lowercast95x, lowercast80x, all=T, fill=NA)
+frame1x <- merge(fitse1x, lnpricef1x, meancast1x, uppercast951x, uppercast801x, lowercast951x, lowercast801x, all=T, fill=NA)
+frame2x <- merge(fitse2x, lnpricef2x, meancast2x, uppercast952x, uppercast802x, lowercast952x, lowercast802x, all=T, fill=NA)
+frame3x <- merge(fitse3x, lnpricef3x, meancast3x, uppercast953x, uppercast803x, lowercast953x, lowercast803x, all=T, fill=NA)
+frame4x <- merge(fitse4x, lnpricef4x, meancast4x, uppercast954x, uppercast804x, lowercast954x, lowercast804x, all=T, fill=NA)
+forecastedx <- fortify(framex)
+forecasted1x <- fortify(frame1x)
+forecasted2x <- fortify(frame2x)
+forecasted3x <- fortify(frame3x)
+forecasted4x <- fortify(frame4x)
+f1x <- ggplot(data=forecastedx, aes(x=Index, group=1)) + geom_line(aes(y = lnpricefx), color = "black", lwd=0.75) +geom_line(aes(y = fitsex), color = "red", linetype="dashed") + geom_line(aes(y = meancastx), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast95x, ymax=uppercast95x), alpha=0.2)+geom_ribbon(aes(ymin=lowercast80x, ymax=uppercast80x), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EURHUF)")+labs(x = "Dátum", y="Log-Árfolyam")
+f2x <- ggplot(data=forecasted1x, aes(x=Index, group=1)) + geom_line(aes(y = lnpricef1x), color = "black", lwd=0.75) +geom_line(aes(y = fitse1x), color = "red", linetype="dashed") + geom_line(aes(y = meancast1x), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast951x, ymax=uppercast951x), alpha=0.2)+geom_ribbon(aes(ymin=lowercast801x, ymax=uppercast801x), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) [with Drift] (EURPLN)")+labs(x = "Dátum", y="Log-Árfolyam")
+f3x <- ggplot(data=forecasted2x, aes(x=Index, group=1)) + geom_line(aes(y = lnpricef2x), color = "black", lwd=0.75) +geom_line(aes(y = fitse2x), color = "red",linetype="dashed") + geom_line(aes(y = meancast2x), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast952x, ymax=uppercast952x), alpha=0.2)+geom_ribbon(aes(ymin=lowercast802x, ymax=uppercast802x), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EURCZK)")+labs(x = "Dátum", y="Log-Árfolyam")
+f4x <- ggplot(data=forecasted3x, aes(x=Index, group=1)) + geom_line(aes(y = lnpricef3x), color = "black", lwd=0.75) +geom_line(aes(y = fitse3x), color = "red", linetype="dashed") + geom_line(aes(y = meancast3x), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast953x, ymax=uppercast953x), alpha=0.2)+geom_ribbon(aes(ymin=lowercast803x, ymax=uppercast803x), alpha=0.15)+theme_bw()+ggtitle("ARIMA (1,1,1) [with Drift] (EURRON)")+labs(x = "Dátum", y="Log-Árfolyam")
+f5x <- ggplot(data=forecasted4x, aes(x=Index, group=1)) + geom_line(aes(y = lnpricef4x, color = "Tényleges idősor (2013-2019)"), lwd=0.75) +geom_line(aes(y = fitse4x, color="Illeszkedés, validáció (2013-2019)"), linetype="dashed") + geom_line(aes(y = meancast4x, color = "Előrejelzés 2020. január"), lwd=0.75)+geom_ribbon(aes(ymin=lowercast954x, ymax=uppercast954x), alpha=0.2)+geom_ribbon(aes(ymin=lowercast804x, ymax=uppercast804x), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) (EURCHF)")+labs(x = "Dátum", y="Log-Árfolyam", color="Jelmagyarázat:")+ scale_color_manual(values=c("Tényleges idősor (2013-2019)"="black","Illeszkedés, validáció (2013-2019)"="red","Előrejelzés 2020. január"="blue"))+theme(legend.position=c(1.3,0.5), legend.background = element_blank(),legend.box.background = element_rect(colour = "black"))
+layout<- matrix(c(1,1,2,2,3,3,4,4,6,5,5,6), nrow=3, byrow=TRUE)
+grid.arrange(f1x,f2x,f3x,f4x,f5x, layout_matrix=layout)
 
 ## ARIMA (2019-től, ránagyítva, visszaalakítva nominális értékekre)
 date <-arfolyamokjan$Date[4957:5240]
@@ -556,10 +574,10 @@ forecasted1 <- fortify(frame1)
 forecasted2 <- fortify(frame2)
 forecasted3 <- fortify(frame3)
 forecasted4 <- fortify(frame4)
-f1 <- ggplot(data=forecasted, aes(x=Index, group=1)) + geom_line(aes(y = fits), color = "black") +geom_line(aes(y = pricef), color = "red", lwd=0.75) + geom_line(aes(y = meancast), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast95, ymax=uppercast95), alpha=0.2)+geom_ribbon(aes(ymin=lowercast80, ymax=uppercast80), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EUR/HUF)")+labs(x = "Dátum", y="Árfolyam")
-f2 <- ggplot(data=forecasted1, aes(x=Index, group=1)) + geom_line(aes(y = fits1), color = "black") +geom_line(aes(y = pricef1), color = "red", lwd=0.75) + geom_line(aes(y = meancast1), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast951, ymax=uppercast951), alpha=0.2)+geom_ribbon(aes(ymin=lowercast801, ymax=uppercast801), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) [with Drift] (EUR/PLN)")+labs(x = "Dátum", y="Árfolyam")
-f3 <- ggplot(data=forecasted2, aes(x=Index, group=1)) + geom_line(aes(y = fits2), color = "black") +geom_line(aes(y = pricef2), color = "red", lwd=0.75) + geom_line(aes(y = meancast2), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast952, ymax=uppercast952), alpha=0.2)+geom_ribbon(aes(ymin=lowercast802, ymax=uppercast802), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EUR/CZK)")+labs(x = "Dátum", y="Árfolyam")
-f4 <- ggplot(data=forecasted3, aes(x=Index, group=1)) + geom_line(aes(y = fits3), color = "black") +geom_line(aes(y = pricef3), color = "red", lwd=0.75) + geom_line(aes(y = meancast3), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast953, ymax=uppercast953), alpha=0.2)+geom_ribbon(aes(ymin=lowercast803, ymax=uppercast803), alpha=0.15)+theme_bw()+ggtitle("ARIMA (1,1,1) [with Drift] (EUR/RON)")+labs(x = "Dátum", y="Árfolyam")
-f5 <- ggplot(data=forecasted4, aes(x=Index, group=1)) + geom_line(aes(y = fits4, color = "Tesztidősor [részlet] 2019- (2013-2020)")) +geom_line(aes(y = pricef4, color="Tényleges alakulás 2020. január"), lwd=0.75) + geom_line(aes(y = meancast4, color = "Előrejelzés 2020. január"), lwd=0.75)+geom_ribbon(aes(ymin=lowercast954, ymax=uppercast954), alpha=0.2)+geom_ribbon(aes(ymin=lowercast804, ymax=uppercast804), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) (EUR/CHF)")+labs(x = "Dátum", y="Árfolyam", color="Jelmagyarázat:")+ scale_color_manual(values=c("Tesztidősor [részlet] 2019- (2013-2020)"="black","Tényleges alakulás 2020. január"="red","Előrejelzés 2020. január"="blue"))+theme(legend.position=c(1.3,0.5), legend.background = element_blank(),legend.box.background = element_rect(colour = "black"))
+f1 <- ggplot(data=forecasted, aes(x=Index, group=1)) + geom_line(aes(y = fits), color = "black") +geom_line(aes(y = pricef), color = "red", lwd=0.75) + geom_line(aes(y = meancast), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast95, ymax=uppercast95), alpha=0.2)+geom_ribbon(aes(ymin=lowercast80, ymax=uppercast80), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EURHUF)")+labs(x = "Dátum", y="Árfolyam")
+f2 <- ggplot(data=forecasted1, aes(x=Index, group=1)) + geom_line(aes(y = fits1), color = "black") +geom_line(aes(y = pricef1), color = "red", lwd=0.75) + geom_line(aes(y = meancast1), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast951, ymax=uppercast951), alpha=0.2)+geom_ribbon(aes(ymin=lowercast801, ymax=uppercast801), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) [with Drift] (EURPLN)")+labs(x = "Dátum", y="Árfolyam")
+f3 <- ggplot(data=forecasted2, aes(x=Index, group=1)) + geom_line(aes(y = fits2), color = "black") +geom_line(aes(y = pricef2), color = "red", lwd=0.75) + geom_line(aes(y = meancast2), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast952, ymax=uppercast952), alpha=0.2)+geom_ribbon(aes(ymin=lowercast802, ymax=uppercast802), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,0) [with Drift] (EURCZK)")+labs(x = "Dátum", y="Árfolyam")
+f4 <- ggplot(data=forecasted3, aes(x=Index, group=1)) + geom_line(aes(y = fits3), color = "black") +geom_line(aes(y = pricef3), color = "red", lwd=0.75) + geom_line(aes(y = meancast3), color = "blue", lwd=0.75)+geom_ribbon(aes(ymin=lowercast953, ymax=uppercast953), alpha=0.2)+geom_ribbon(aes(ymin=lowercast803, ymax=uppercast803), alpha=0.15)+theme_bw()+ggtitle("ARIMA (1,1,1) [with Drift] (EURRON)")+labs(x = "Dátum", y="Árfolyam")
+f5 <- ggplot(data=forecasted4, aes(x=Index, group=1)) + geom_line(aes(y = fits4, color = "Tesztidősor [részlet] 2019- (2013-2020)")) +geom_line(aes(y = pricef4, color="Tényleges alakulás 2020. január"), lwd=0.75) + geom_line(aes(y = meancast4, color = "Előrejelzés 2020. január"), lwd=0.75)+geom_ribbon(aes(ymin=lowercast954, ymax=uppercast954), alpha=0.2)+geom_ribbon(aes(ymin=lowercast804, ymax=uppercast804), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) (EURCHF)")+labs(x = "Dátum", y="Árfolyam", color="Jelmagyarázat:")+ scale_color_manual(values=c("Tesztidősor [részlet] 2019- (2013-2020)"="black","Tényleges alakulás 2020. január"="red","Előrejelzés 2020. január"="blue"))+theme(legend.position=c(1.3,0.5), legend.background = element_blank(),legend.box.background = element_rect(colour = "black"))
 layout<- matrix(c(1,1,2,2,3,3,4,4,6,5,5,6), nrow=3, byrow=TRUE)
 grid.arrange(f1,f2,f3,f4,f5, layout_matrix=layout)
