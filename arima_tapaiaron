@@ -451,19 +451,29 @@ par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("bottomright", c("Lengyel lebegő árfolyam","Román lebegő árfolyam","Magyar lebegő árfolyam","Svájci lebegő árfolyam","Cseh lebegő árfolyam"), fill=c("lightblue","gold","yellowgreen","lightpink", "salmon2"),xpd=TRUE, inset=c(0.01,0), bty="n", cex=1)
 
-##ACF és PACF korrelogram
-layout(mat = matrix(c(1,2,3,4,5,6,7,8,9,10), nrow = 5, byrow = TRUE))
+##ACF és PACF korrelogram - teljes
+layout(mat = matrix(c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20), nrow = 10, byrow = TRUE))
 par(mar=c(3,3,3,3))
 plot(acf(difflnprice,plot=F) [1:24], main="ACF EURHUF Log- és Differenciált (1) adatok")
 plot(pacf(difflnprice,plot=F) [0:24], main="PACF EURHUF Log- és Differenciált (1) adatok")
+plot(acf(as.numeric(fitlnprice$resid),plot=F) [1:24], main="ACF ARIMA (2,1,0) [d] - (EURHUF)")
+plot(pacf(as.numeric(fitlnprice$resid),plot=F) [0:24], main="PACF ARIMA (2,1,0) [d] - (EURHUF)")
 plot(acf(difflnprice1,plot=F) [1:24], main="ACF EURPLN Log- és Differenciált (1) adatok")
 plot(pacf(difflnprice1,plot=F) [0:24], main="PACF EURPLN Log- és Differenciált (1) adatok")
+plot(acf(as.numeric(fitlnprice1$resid),plot=F) [1:24], main="ACF ARIMA (2,1,2) [d] - (EURPLN)")
+plot(pacf(as.numeric(fitlnprice1$resid),plot=F) [0:24], main="PACF ARIMA (2,1,2) [d] - (EURPLN)")
 plot(acf(difflnprice2,plot=F) [1:24], main="ACF EURCZK Log- és Differenciált (1) adatok")
 plot(pacf(difflnprice2,plot=F) [0:24], main="PACF EURCZK Log- és Differenciált (1) adatok")
+plot(acf(as.numeric(fitlnprice2$resid),plot=F) [1:24], main="ACF ARIMA (2,1,0) [d] - (EURCZK)")
+plot(pacf(as.numeric(fitlnprice2$resid),plot=F) [0:24], main="PACF ARIMA (2,1,0) [d] - (EURCZK)")
 plot(acf(difflnprice3,plot=F) [1:24], main="ACF EURRON Log- és Differenciált (1) adatok")
 plot(pacf(difflnprice3,plot=F) [0:24], main="PACF EURRON Log- és Differenciált (1) adatok")
+plot(acf(as.numeric(fitlnprice3$resid),plot=F) [1:24], main="ACF ARIMA (1,1,1) [d] - (EURRON)")
+plot(pacf(as.numeric(fitlnprice3$resid),plot=F) [0:24], main="PACF ARIMA (1,1,1) [d] - (EURRON)")
 plot(acf(difflnprice4,plot=F) [1:24], main="ACF EURCHF Log- és Differenciált (1) adatok")
 plot(pacf(difflnprice4,plot=F) [0:24], main="PACF EURCHF Log- és Differenciált (1) adatok")
+plot(acf(as.numeric(fitlnprice4$resid),plot=F) [1:24], main="ACF ARIMA (2,1,2) - (EURCHF)")
+plot(pacf(as.numeric(fitlnprice4$resid),plot=F) [0:24], main="PACF ARIMA (2,1,2) - (EURCHF)")
 
 ##ARIMA teljes időszak vs validáció
 dateshx <- arfolyamokjan$Date[3392:5217]
