@@ -67,8 +67,6 @@ eurpln.xts <- xts(arfolyamok$EURPLN, order.by=arfolyamok$Date)
 eurczk.xts <- xts(arfolyamok$EURCZK, order.by=arfolyamok$Date)
 eurron.xts <- xts(arfolyamok$EURRON, order.by=arfolyamok$Date)
 eurchf.xts <- xts(arfolyamok$EURCHF, order.by=arfolyamok$Date)
-eurusd.xts <- xts(arfolyamok$EURUSD, order.by=arfolyamok$Date)
-chfhuf.xts <- xts(arfolyamok$CHFHUF, order.by=arfolyamok$Date)
 
 ## Loghozamok
 eurhuflog <- data.frame(arfolyamok$Date, periodReturn(eurhuf.xts,period="daily", type="log"))
@@ -83,8 +81,8 @@ eurchflog <- data.frame(arfolyamok$Date, periodReturn(eurchf.xts,period="daily",
 colnames(eurchflog)=c("Idő", "EURCHF")
 
 ## Loghozamok egybe
-returns <- data.frame(arfolyamok$Date, periodReturn(eurhuf.xts,period="daily", type="log"), periodReturn(eurpln.xts,period="daily", type="log"), periodReturn(eurczk.xts,period="daily", type="log"), periodReturn(eurron.xts,period="daily", type="log"), periodReturn(eurchf.xts,period="daily", type="log"), periodReturn(eurusd.xts,period="daily", type="log"), periodReturn(chfhuf.xts,period="daily", type="log"))
-colnames(returns)=c("Idő", "EURHUF", "EURPLN", "EURCZK", "EURRON", "EURCHF", "EURUSD", "CHFHUF")
+returns <- data.frame(arfolyamok$Date, periodReturn(eurhuf.xts,period="daily", type="log"), periodReturn(eurpln.xts,period="daily", type="log"), periodReturn(eurczk.xts,period="daily", type="log"), periodReturn(eurron.xts,period="daily", type="log"), periodReturn(eurchf.xts,period="daily", type="log"))
+colnames(returns)=c("Idő", "EURHUF", "EURPLN", "EURCZK", "EURRON", "EURCHF")
 
 ## Átlagos adatszám évente
 years1 <- format(arfolyamok$Date, "%Y")
@@ -173,7 +171,7 @@ turning.point.test(as.numeric(eurplnlog$EURPLN))
 turning.point.test(as.numeric(eurczklog$EURCZK))
 turning.point.test(as.numeric(eurronlog$EURRON))
 turning.point.test(as.numeric(eurchflog$EURCHF))
-##Négyzet tesztek
+##Loghozam négyzet tesztek
 bartels.test(as.numeric(eurhuflog$EURHUF)^2)
 bartels.test(as.numeric(eurplnlog$EURPLN)^2)
 bartels.test(as.numeric(eurczklog$EURCZK)^2)
@@ -201,6 +199,7 @@ adf.test(as.ts(eurplnadf.xts))
 adf.test(as.ts(eurczkadf.xts))
 adf.test(as.ts(eurronadf.xts))
 adf.test(as.ts(eurchfadf.xts))
+
 ##KPSS teszt nyers
 kpss.test(as.numeric(eurhufadf.xts), null=c("Level"))
 kpss.test(as.numeric(eurhufadf.xts), null=c("Trend"))
@@ -212,6 +211,14 @@ kpss.test(as.numeric(eurronadf.xts), null=c("Level"))
 kpss.test(as.numeric(eurronadf.xts), null=c("Trend"))
 kpss.test(as.numeric(eurchfadf.xts), null=c("Level"))
 kpss.test(as.numeric(eurchfadf.xts), null=c("Trend"))
+
+##ADF LOG 2013-2020
+adf.test(as.ts(lnprice))
+adf.test(as.ts(lnprice1))
+adf.test(as.ts(lnprice2))
+adf.test(as.ts(lnprice3))
+adf.test(as.ts(lnprice4))
+
 ##KPSS teszt LOG 2013-2020
 kpss.test(lnprice, null=c("Level"))
 kpss.test(lnprice, null=c("Trend"))
@@ -223,6 +230,14 @@ kpss.test(lnprice3, null=c("Level"))
 kpss.test(lnprice3, null=c("Trend"))
 kpss.test(lnprice4, null=c("Level"))
 kpss.test(lnprice4, null=c("Trend"))
+
+##ADF DIFF 2013-2020
+adf.test(as.ts(difflnprice))
+adf.test(as.ts(difflnprice1))
+adf.test(as.ts(difflnprice2))
+adf.test(as.ts(difflnprice3))
+adf.test(as.ts(difflnprice4))
+
 ##KPSS teszt DIFF 2013-2020
 kpss.test(difflnprice, null=c("Level"))
 kpss.test(difflnprice, null=c("Trend"))
@@ -234,18 +249,7 @@ kpss.test(difflnprice3, null=c("Level"))
 kpss.test(difflnprice3, null=c("Trend"))
 kpss.test(difflnprice4, null=c("Level"))
 kpss.test(difflnprice4, null=c("Trend"))
-##ADF LOG 2013-2020
-adf.test(as.ts(lnprice))
-adf.test(as.ts(lnprice1))
-adf.test(as.ts(lnprice2))
-adf.test(as.ts(lnprice3))
-adf.test(as.ts(lnprice4))
-##ADF DIFF 2013-2020
-adf.test(as.ts(difflnprice))
-adf.test(as.ts(difflnprice1))
-adf.test(as.ts(difflnprice2))
-adf.test(as.ts(difflnprice3))
-adf.test(as.ts(difflnprice4))
+
 
 ## ARIMA ##
 pricearima <- ts(lnprice, start= c(2013,01), frequency = 260)
@@ -274,7 +278,7 @@ finalforecastvalues2=exp(forecastedvaluesextracted2)
 finalforecastvalues3=exp(forecastedvaluesextracted3)
 finalforecastvalues4=exp(forecastedvaluesextracted4)
 
-## Százalékos hiba
+## Százalékos hiba ARIMA vs tényleges
 df<-data.frame(arfolyamokjan$EURHUF[5218:5240],finalforecastvalues)
 col_headings<-c ("Aktuális Árfolyam", "Előrejelzett Árfolyam")
 names(df)<- col_headings
@@ -317,12 +321,14 @@ mean(percentage_error4)
 df4
 
 ## REZIDUUM TESZTEK ##
+
 ##Ljung-Box
 Box.test(fitlnprice$resid, lag=5, type="Ljung-Box")
 Box.test(fitlnprice1$resid, lag=5, type="Ljung-Box")
 Box.test(fitlnprice2$resid, lag=5, type="Ljung-Box")
 Box.test(fitlnprice3$resid, lag=5, type="Ljung-Box")
 Box.test(fitlnprice4$resid, lag=5, type="Ljung-Box")
+
 ##Godfrey-Breusch
 res<-lm(fitlnprice$resid~1)
 res1<-lm(fitlnprice1$resid~1)
@@ -334,7 +340,8 @@ bgtest(res1, order=5)
 bgtest(res2, order=5)
 bgtest(res3, order=5)
 bgtest(res4, order=5)
-#Jarque-Bera Teszt
+
+##Jarque-Bera Teszt
 jarque.bera.test(fitlnprice$resid)
 jarque.bera.test(fitlnprice1$resid)
 jarque.bera.test(fitlnprice2$resid)
@@ -371,7 +378,7 @@ plot(lmd3, which=1,caption="EURCZK ARIMA (2,1,0) - drift: Becsült érték vs. R
 plot(lmd4, which=1,caption="EURRON ARIMA (1,1,1) - drift: Becsült érték vs. Reziduum")
 plot(lmd5, which=1,caption="EURCHF ARIMA (2,1,2): Becsült érték vs. Reziduum")
 
-## Árfolyam + loghozam
+## Nominális árfolyam + loghozam
 h1<-data.frame(arfolyamok$Date, eurhuflog$EURHUF, arfolyamok$EURHUF)
 h2<-data.frame(arfolyamok$Date, eurplnlog$EURPLN, arfolyamok$EURPLN)
 h3<-data.frame(arfolyamok$Date, eurczklog$EURCZK, arfolyamok$EURCZK)
@@ -385,7 +392,7 @@ g5 <- ggplot(data=h5, aes(x=arfolyamok$Date, group=1)) + geom_line(aes(y = arfol
 layout<- matrix(c(1,1,2,2,3,3,4,4,6,5,5,6), nrow=3, byrow=TRUE)
 grid.arrange(g2,g3,g4,g5,g1, layout_matrix=layout)
 
-## Eloszlások
+## Loghozam eloszlások
 layout(mat = matrix(c(1,1,2,2,3,3,0,4,4,5,5,0), nrow = 2, byrow = TRUE))
 m=mean(eurhuflog$EURHUF); s=sd(eurhuflog$EURHUF);
 m=mean(eurplnlog$EURPLN); s=sd(eurplnlog$EURPLN);
@@ -593,3 +600,5 @@ f4 <- ggplot(data=forecasted3, aes(x=Index, group=1)) + geom_line(aes(y = fits3)
 f5 <- ggplot(data=forecasted4, aes(x=Index, group=1)) + geom_line(aes(y = fits4, color = "Tesztidősor [részlet] 2019- (2013-2020)")) +geom_line(aes(y = pricef4, color="Tényleges alakulás 2020. január"), lwd=0.75) + geom_line(aes(y = meancast4, color = "Előrejelzés 2020. január"), lwd=0.75)+geom_ribbon(aes(ymin=lowercast954, ymax=uppercast954), alpha=0.2)+geom_ribbon(aes(ymin=lowercast804, ymax=uppercast804), alpha=0.15)+theme_bw()+ggtitle("ARIMA (2,1,2) (EURCHF)")+labs(x = "Dátum", y="Árfolyam", color="Jelmagyarázat:")+ scale_color_manual(values=c("Tesztidősor [részlet] 2019- (2013-2020)"="black","Tényleges alakulás 2020. január"="red","Előrejelzés 2020. január"="blue"))+theme(legend.position=c(1.3,0.5), legend.background = element_blank(),legend.box.background = element_rect(colour = "black"))
 layout<- matrix(c(1,1,2,2,3,3,4,4,6,5,5,6), nrow=3, byrow=TRUE)
 grid.arrange(f1,f2,f3,f4,f5, layout_matrix=layout)
+
+##++ Mentési beállítások
